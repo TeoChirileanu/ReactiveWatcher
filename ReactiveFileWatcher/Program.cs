@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading;
 
 namespace ReactiveFileWatcher
 {
@@ -12,24 +12,23 @@ namespace ReactiveFileWatcher
         {
             var tempDir = Path.GetTempPath();
             var watcher = new FileSystemWatcher(tempDir) {EnableRaisingEvents = true};
-            Console.WriteLine($"Watching {tempDir}...");
+            Console.WriteLine($"\nStart watching {tempDir}\n");
 
+            var timeout = TimeSpan.FromSeconds(1);
             Observable.FromEventPattern(watcher, nameof(watcher.Created))
-                .Select(data => ((FileSystemEventArgs)data.EventArgs).FullPath)
-                .Subscribe(file => Console.WriteLine($"Saw {file})"));
+                .Select(data => ((FileSystemEventArgs) data.EventArgs).FullPath)
+                .Buffer(timeout)
+                .Subscribe(files => Console.WriteLine($"Saw {files.Count} files"));
 
-            Observable.FromEventPattern(watcher, nameof(watcher.Error))
-                .Select(data => ((ErrorEventArgs)data.EventArgs).GetException())
-                .Subscribe(exception => Console.WriteLine($"Got an error: {exception}"));
-
-            foreach(var _ in Enumerable.Range(0, 10))
+            foreach (var _ in Enumerable.Range(0, 10))
             {
                 var tempFile = Path.GetTempFileName();
                 File.Delete(tempFile);
             }
 
+            Thread.Sleep(timeout);
             watcher.Dispose();
-            Console.WriteLine($"Stopped watching {tempDir}");
+            Console.WriteLine($"\nStopped watching {tempDir}\n");
         }
     }
 }
