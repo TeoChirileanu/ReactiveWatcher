@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Reactive;
+using System.Reactive.Linq;
 
 namespace ReactiveFileWatcher
 {
@@ -7,14 +9,19 @@ namespace ReactiveFileWatcher
     {
         private static void Main()
         {
-            var watcher = new FileSystemWatcher(Path.GetTempPath());
+            var tempDir = Path.GetTempPath();
+            var watcher = new FileSystemWatcher(tempDir);
             Console.WriteLine("Created watcher");
-            
-            watcher.Created += (_, args) => Console.WriteLine($"Saw {args.FullPath}");
-            Console.WriteLine("Configured watcher to react to new files or directories");
-            
+
             watcher.EnableRaisingEvents = true;
-            Console.WriteLine($"Watching {Path.GetTempPath()}");
+            Console.WriteLine($"Watching {tempDir}...");
+            
+            IObservable<EventPattern<object>> newFiles = Observable.FromEventPattern(watcher, nameof(watcher.Created));
+            newFiles.Subscribe(data =>
+            {
+                var args = data.EventArgs as FileSystemEventArgs;
+                Console.WriteLine($"Saw {args.FullPath}");
+            });
             
             var tempFile = Path.GetTempFileName();
             Console.WriteLine($"Created {tempFile}");
