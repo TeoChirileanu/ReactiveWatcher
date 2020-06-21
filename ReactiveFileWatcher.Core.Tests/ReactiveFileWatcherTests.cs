@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -30,19 +31,21 @@ namespace ReactiveFileWatcher.Core.Tests
         }
 
         [TestMethod]
-        public async Task ShouldFillNewFileWithSomeData()
+        public async Task ShouldFillNewFileWithSomeDataUsingCustomAction()
         {
             // Arrange
             const string folderToWatch = "watch";
             var file = Path.Combine(folderToWatch, "foo.txt");
+            
             var randomData = Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
+            async void AppendRandomDataToFile(string f) => await File.AppendAllTextAsync(f, randomData);
 
             Directory.CreateDirectory(folderToWatch);
-            using IReactiveFileWatcher watcher = new ReactiveFileWatcher(folderToWatch);
+            using IReactiveFileWatcher watcher = new ReactiveFileWatcher(folderToWatch, AppendRandomDataToFile);
 
             // Act
             await watcher.StartWatchingForNewFiles();
-            await File.WriteAllTextAsync(file, randomData);
+            await File.WriteAllTextAsync(file, string.Empty); // create the file
 
             // Assert
             Check.That(File.Exists(file)).IsTrue();

@@ -9,16 +9,18 @@ namespace ReactiveFileWatcher.Core
     {
         private readonly FileSystemWatcher _watcher = new FileSystemWatcher();
 
-        public ReactiveFileWatcher(string folderToWatch)
+        public ReactiveFileWatcher(string folderToWatch, Action<string> actionToExecute = null)
         {
             _watcher.Path = folderToWatch;
 
             Observable.FromEventPattern(_watcher, nameof(_watcher.Created))
                 .Select(data => ((FileSystemEventArgs) data.EventArgs).FullPath)
-                .Subscribe(file =>
-                {
-                    if (!File.Exists(file)) File.Delete(file);
-                });
+                .Subscribe(actionToExecute ?? DeleteFile);
+
+            static void DeleteFile(string file)
+            {
+                if (!File.Exists(file)) File.Delete(file);
+            }
         }
 
         public async Task StartWatchingForNewFiles()
