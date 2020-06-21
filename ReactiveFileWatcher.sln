@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReactiveFileWatcher", "ReactiveFileWatcher\ReactiveFileWatcher.csproj", "{9B4869FB-E748-42F7-A51E-04213B30A138}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReactiveFileWatcher.Console", "ReactiveFileWatcher.Console\ReactiveFileWatcher.Console.csproj", "{9B4869FB-E748-42F7-A51E-04213B30A138}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
