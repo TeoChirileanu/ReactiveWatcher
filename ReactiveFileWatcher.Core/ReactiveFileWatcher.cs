@@ -9,17 +9,24 @@ namespace ReactiveFileWatcher.Core
     {
         private readonly FileSystemWatcher _watcher = new FileSystemWatcher();
 
-        public ReactiveFileWatcher(string folderToWatch, Action<string> actionToExecute = null)
+        public ReactiveFileWatcher(string folder, Func<string, Task<string>> action = null)
         {
-            _watcher.Path = folderToWatch;
+            _watcher.Path = folder;
+            var errFile = $@"{folder}\log.err";
+            var logfile = $@"{folder}\log.txt";
 
             Observable.FromEventPattern(_watcher, nameof(_watcher.Created))
                 .Select(data => ((FileSystemEventArgs) data.EventArgs).FullPath)
-                .Subscribe(actionToExecute ?? DeleteFile);
-
-            static void DeleteFile(string file)
+                .Select(action ?? DeleteFile)
+                .Subscribe(
+                    async contents => await File.AppendAllTextAsync(logfile, await contents),
+                    async exception => await File.AppendAllTextAsync(errFile, exception.ToString()));
+                // todo: delete files
+            
+            static async Task<string> DeleteFile(string f)
             {
-                if (!File.Exists(file)) File.Delete(file);
+                File.Delete(f);
+                return await Task.FromResult(f);
             }
         }
 

@@ -38,7 +38,12 @@ namespace ReactiveFileWatcher.Core.Tests
             var file = Path.Combine(folderToWatch, "foo.txt");
             
             var randomData = Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
-            async void AppendRandomDataToFile(string f) => await File.AppendAllTextAsync(f, randomData);
+
+            async Task<string> AppendRandomDataToFile(string f)
+            {
+                await File.AppendAllTextAsync(f, randomData);
+                return string.Empty;
+            }
 
             Directory.CreateDirectory(folderToWatch);
             using IReactiveFileWatcher watcher = new ReactiveFileWatcher(folderToWatch, AppendRandomDataToFile);
